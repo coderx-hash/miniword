@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pro Docs Editor | Offline</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
 
 <script src="https://unpkg.com/mammoth/mammoth.browser.min.js"></script>
@@ -20,6 +20,8 @@
   --border: #e5e7eb;
 }
 
+* { box-sizing: border-box; }
+
 body {
   margin: 0;
   font-family: 'Inter', sans-serif;
@@ -28,6 +30,7 @@ body {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  overflow: hidden; /* Prevent body scroll, use workspace scroll */
 }
 
 /* ===== HEADER (Date & Title) ===== */
@@ -54,38 +57,35 @@ header {
 
 .datetime-display {
   font-size: 14px;
-  color: #6b7280;
+  color: #4b5563;
   background: #f9fafb;
-  padding: 6px 12px;
+  padding: 6px 14px;
   border-radius: 20px;
   border: 1px solid var(--border);
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  font-weight: 500;
 }
 
 /* ===== TOOLBAR ===== */
 .toolbar {
   background: var(--surface);
-  padding: 10px 20px;
+  padding: 8px 20px;
   border-bottom: 1px solid var(--border);
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
   align-items: center;
-  position: sticky;
-  top: 0;
   z-index: 999;
 }
 
-.tool-group {
-  display: flex;
-  gap: 4px;
-  padding-right: 10px;
-  border-right: 1px solid var(--border);
-  align-items: center;
+.separator {
+  width: 1px;
+  height: 24px;
+  background: var(--border);
+  margin: 0 4px;
 }
-.tool-group:last-child { border-right: none; }
 
 button {
   border: none;
@@ -98,6 +98,7 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
 }
 
 button:hover {
@@ -109,16 +110,38 @@ button span.material-icons-round {
   font-size: 20px;
 }
 
+/* Tooltip on hover */
+button[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1f2937;
+  color: white;
+  padding: 4px 8px;
+  font-size: 11px;
+  border-radius: 4px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 100;
+  margin-top: 5px;
+}
+
 /* Custom inputs (Color/File) */
 .color-picker-wrapper {
   position: relative;
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   overflow: hidden;
-  border-radius: 50%;
-  border: 2px solid var(--border);
+  border-radius: 4px;
+  border: 1px solid var(--border);
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+
 input[type="color"] {
   position: absolute;
   top: -50%; left: -50%;
@@ -128,28 +151,30 @@ input[type="color"] {
   border: none;
 }
 
-.btn-label {
+.btn-upload {
   display: flex;
   align-items: center;
   gap: 6px;
   font-size: 13px;
   font-weight: 500;
-  padding: 8px 12px;
-  background: #eff6ff;
-  color: var(--primary);
+  padding: 6px 12px;
+  background: white;
+  color: #374151;
+  border: 1px solid var(--border);
   border-radius: 6px;
   cursor: pointer;
   transition: 0.2s;
 }
-.btn-label:hover { background: #dbeafe; }
+.btn-upload:hover { background: #f9fafb; border-color: #d1d5db; }
 
 /* ===== EDITOR AREA ===== */
 .workspace {
   flex: 1;
-  overflow-y: auto;
+  overflow-y: auto; /* Scroll is here */
   padding: 40px 20px;
   display: flex;
   justify-content: center;
+  background: #e5e7eb; /* Slightly darker than body for contrast */
 }
 
 .page {
@@ -158,7 +183,7 @@ input[type="color"] {
   min-height: 297mm;
   padding: 25mm;
   box-sizing: border-box;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   outline: none;
   transition: width 0.3s;
 }
@@ -168,25 +193,29 @@ input[type="color"] {
   min-height: 210mm;
 }
 
-/* Content Styling */
-h1, h2, h3 { margin-top: 0; }
-table { border-collapse: collapse; width: 100%; margin: 15px 0; }
-td, th { border: 1px solid #d1d5db; padding: 8px; text-align: left; }
-th { background: #f3f4f6; }
-img { max-width: 100%; height: auto; }
+/* Content Styling inside Page */
+.page h1, .page h2, .page h3 { margin-top: 0; color: #111827; }
+.page p { line-height: 1.6; color: #374151; margin-bottom: 1em; }
+.page table { border-collapse: collapse; width: 100%; margin: 15px 0; font-size: 14px; }
+.page td, .page th { border: 1px solid #d1d5db; padding: 8px; text-align: left; vertical-align: top; }
+.page th { background: #f3f4f6; font-weight: 600; }
+.page img { max-width: 100%; height: auto; display: block; margin: 10px 0; }
 
 /* ===== MOBILE ===== */
 @media(max-width: 768px) {
   .page { width: 100%; padding: 20px; min-height: 80vh; }
   header { flex-direction: column; height: auto; padding: 10px; gap: 10px; }
-  .toolbar { gap: 5px; overflow-x: auto; padding: 10px; }
+  .datetime-display { font-size: 12px; width: 100%; justify-content: center;}
+  .toolbar { gap: 5px; overflow-x: auto; padding: 10px; justify-content: flex-start; }
+  .btn-upload span { display: none; } /* Hide text on mobile buttons */
 }
 
 /* ===== PRINT ===== */
 @media print {
-  header, .toolbar { display: none; }
-  .workspace { padding: 0; display: block; }
-  .page { box-shadow: none; margin: 0; width: 100%; }
+  header, .toolbar { display: none !important; }
+  .workspace { padding: 0; background: white; overflow: visible; height: auto; }
+  .page { box-shadow: none; margin: 0; width: 100%; print-color-adjust: exact; }
+  body { height: auto; overflow: visible; }
 }
 </style>
 </head>
@@ -206,77 +235,99 @@ img { max-width: 100%; height: auto; }
 
 <div class="toolbar">
   
-  <div class="tool-group">
-    <button onclick="saveFile()" title="Save as HTML">
-      <span class="material-icons-round">save</span>
-    </button>
-    <button onclick="window.print()" title="Print">
-      <span class="material-icons-round">print</span>
-    </button>
+  <button onclick="saveFile()" title="Save (Ctrl+S)">
+    <span class="material-icons-round">save</span>
+  </button>
+  <button onclick="window.print()" title="Print (Ctrl+P)">
+    <span class="material-icons-round">print</span>
+  </button>
+
+  <div class="separator"></div>
+
+  <button onclick="cmd('undo')" title="Undo (Ctrl+Z)">
+    <span class="material-icons-round">undo</span>
+  </button>
+  <button onclick="cmd('redo')" title="Redo (Ctrl+Y)">
+    <span class="material-icons-round">redo</span>
+  </button>
+
+  <div class="separator"></div>
+
+  <button onclick="cmd('bold')" title="Bold (Ctrl+B)">
+    <span class="material-icons-round">format_bold</span>
+  </button>
+  <button onclick="cmd('italic')" title="Italic (Ctrl+I)">
+    <span class="material-icons-round">format_italic</span>
+  </button>
+  <button onclick="cmd('underline')" title="Underline (Ctrl+U)">
+    <span class="material-icons-round">format_underlined</span>
+  </button>
+  <button onclick="toggleCase()" title="Change Case (Shift+F3)">
+    <span class="material-icons-round">text_fields</span>
+  </button>
+
+  <div class="separator"></div>
+
+  <div class="color-picker-wrapper" title="Text Color">
+    <span class="material-icons-round" style="font-size:18px; color:#333; pointer-events:none;">format_color_text</span>
+    <input type="color" onchange="cmd('foreColor',this.value)" value="#000000">
+  </div>
+  <div class="color-picker-wrapper" title="Highlight Color" style="background:#ffffcc">
+    <span class="material-icons-round" style="font-size:18px; color:#333; pointer-events:none;">border_color</span>
+    <input type="color" onchange="cmd('hiliteColor',this.value)" value="#ffff00">
   </div>
 
-  <div class="tool-group">
-    <button onclick="cmd('bold')" title="Bold">
-      <span class="material-icons-round">format_bold</span>
-    </button>
-    <button onclick="cmd('italic')" title="Italic">
-      <span class="material-icons-round">format_italic</span>
-    </button>
-    <button onclick="cmd('underline')" title="Underline">
-      <span class="material-icons-round">format_underlined</span>
-    </button>
-  </div>
+  <div class="separator"></div>
 
-  <div class="tool-group">
-    <div class="color-picker-wrapper" title="Text Color">
-      <input type="color" onchange="cmd('foreColor',this.value)" value="#000000">
-    </div>
-    <div class="color-picker-wrapper" title="Highlight Color" style="background:#ffff00">
-      <input type="color" onchange="cmd('hiliteColor',this.value)" value="#ffff00">
-    </div>
-  </div>
+  <button onclick="toggleOrientation()" title="Portrait/Landscape">
+    <span class="material-icons-round">crop_rotate</span>
+  </button>
 
-  <div class="tool-group">
-    <button onclick="toggleOrientation()" title="Portrait/Landscape">
-      <span class="material-icons-round">crop_rotate</span>
-    </button>
-  </div>
+  <div style="flex:1;"></div>
 
-  <div class="tool-group" style="border:none;">
-    <label class="btn-label">
-      <span class="material-icons-round">upload_file</span> Word
-      <input type="file" id="wordFile" hidden accept=".docx">
-    </label>
-    <label class="btn-label" style="background:#ecfdf5; color:#059669;">
-      <span class="material-icons-round">table_view</span> Excel
-      <input type="file" id="excelFile" hidden accept=".xlsx">
-    </label>
-  </div>
+  <label class="btn-upload">
+    <span class="material-icons-round" style="color:#2563eb;">description</span> Word
+    <input type="file" id="wordFile" hidden accept=".docx">
+  </label>
+  <label class="btn-upload">
+    <span class="material-icons-round" style="color:#10b981;">table_view</span> Excel
+    <input type="file" id="excelFile" hidden accept=".xlsx">
+  </label>
 
 </div>
 
 <div class="workspace">
   <div id="editor" class="page" contenteditable="true">
-    <h1 style="color:#2563eb;">Document Title</h1>
-    <p>Start typing here or upload a <b>Word</b> or <b>Excel</b> file to edit.</p>
-    <p><i>The time above updates automatically.</i></p>
+    <h2 style="color:#2563eb;">Welcome to Pro Docs Editor</h2>
+    <p>Type anything here. You can paste images, format text, and save your work.</p>
+    
+    <p><b>Shortcuts Available:</b></p>
+    <ul>
+      <li><b>Shift + F3</b>: Change Case (UPPER, lower, Title)</li>
+      <li><b>Ctrl + B/I/U</b>: Bold, Italic, Underline</li>
+      <li><b>Ctrl + S</b>: Save File</li>
+      <li><b>Ctrl + P</b>: Print</li>
+      <li><b>Ctrl + Z/Y</b>: Undo / Redo</li>
+    </ul>
+    
+    <p><i>The date above updates in real-time.</i></p>
   </div>
 </div>
 
 <script>
-/* ===== CLOCK FUNCTION (NEW) ===== */
+/* ===== 1. CLOCK FUNCTION ===== */
 function updateClock() {
   const now = new Date();
   const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
   const dateStr = now.toLocaleDateString('en-US', options);
-  const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   
-  document.getElementById('date-text').innerText = `${dateStr} • ${timeStr}`;
+  document.getElementById('date-text').innerText = `${dateStr} — ${timeStr}`;
 }
-setInterval(updateClock, 1000); // Update every second
-updateClock(); // Run immediately
+setInterval(updateClock, 1000);
+updateClock();
 
-/* ===== EDITOR FUNCTIONS ===== */
+/* ===== 2. EDITOR CORE FUNCTIONS ===== */
 const editor = document.getElementById("editor");
 
 function cmd(command, value = null) {
@@ -288,70 +339,122 @@ function toggleOrientation() {
   editor.classList.toggle("landscape");
 }
 
+/* ===== 3. SAVE FILE ===== */
 function saveFile() {
-  const fullHTML = `<!DOCTYPE html>
+  const htmlContent = editor.innerHTML;
+  const fullHTML = `
+  <!DOCTYPE html>
   <html>
   <head>
     <meta charset="UTF-8">
     <title>Saved Document</title>
     <style>
-      body{font-family:Arial, sans-serif; padding:40px;}
-      table{border-collapse:collapse;width:100%;}
-      td,th{border:1px solid #000;padding:6px;}
+      body{ font-family: Arial, sans-serif; padding: 40px; line-height: 1.6; }
+      table{ border-collapse: collapse; width: 100%; margin: 15px 0; }
+      td, th{ border: 1px solid #000; padding: 6px; }
+      img { max-width: 100%; }
     </style>
   </head>
   <body>
-    ${editor.innerHTML}
+    ${htmlContent}
   </body>
   </html>`;
 
   const blob = new Blob([fullHTML], { type: "text/html" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = `Doc_${new Date().toISOString().slice(0,10)}.html`;
+  a.download = `Document_${new Date().getTime()}.html`;
   a.click();
 }
 
-/* ===== IMPORT WORD (.docx) ===== */
+/* ===== 4. SHORTCUTS RESTORED ===== */
+document.addEventListener("keydown", function(e) {
+
+  // CTRL SHORTCUTS
+  if (e.ctrlKey) {
+    const key = e.key.toLowerCase();
+    switch(key) {
+      case 'b': e.preventDefault(); cmd("bold"); break;
+      case 'i': e.preventDefault(); cmd("italic"); break;
+      case 'u': e.preventDefault(); cmd("underline"); break;
+      case 's': e.preventDefault(); saveFile(); break;
+      case 'p': e.preventDefault(); window.print(); break;
+      case 'z': e.preventDefault(); cmd("undo"); break;
+      case 'y': e.preventDefault(); cmd("redo"); break;
+    }
+  }
+
+  // SHIFT + F3 (CHANGE CASE)
+  if (e.shiftKey && e.key === "F3") {
+    e.preventDefault();
+    toggleCase();
+  }
+});
+
+/* ===== 5. TOGGLE CASE LOGIC (Restored) ===== */
+function toggleCase() {
+  const sel = window.getSelection();
+  if (!sel.rangeCount) return;
+
+  const range = sel.getRangeAt(0);
+  const text = range.toString();
+  if (!text) return; // Exit if no text selected
+
+  let newText;
+  if (text === text.toUpperCase()) {
+    newText = text.toLowerCase();
+  } else if (text === text.toLowerCase()) {
+    // Title Case logic
+    newText = text.replace(/\b\w/g, c => c.toUpperCase());
+  } else {
+    newText = text.toUpperCase();
+  }
+
+  document.execCommand("insertText", false, newText);
+}
+
+/* ===== 6. IMAGE PASTE SUPPORT (Restored) ===== */
+editor.addEventListener("paste", function(e) {
+  const items = (e.clipboardData || window.clipboardData).items;
+  for (let i = 0; i < items.length; i++) {
+    if (items[i].type.indexOf("image") !== -1) {
+      e.preventDefault();
+      const blob = items[i].getAsFile();
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        document.execCommand("insertImage", false, event.target.result);
+      };
+      reader.readAsDataURL(blob);
+    }
+  }
+});
+
+/* ===== 7. FILE IMPORTS ===== */
+// WORD
 document.getElementById("wordFile").addEventListener("change", function(e) {
   const file = e.target.files[0];
   if (!file) return;
-
   const reader = new FileReader();
   reader.onload = function(event) {
     mammoth.convertToHtml({ arrayBuffer: event.target.result })
-      .then(function(result) {
-        editor.innerHTML = result.value; // Replace content
-      })
-      .catch(function(err) { console.error(err); });
+      .then(result => editor.innerHTML = result.value)
+      .catch(err => console.error(err));
   };
   reader.readAsArrayBuffer(file);
 });
 
-/* ===== IMPORT EXCEL (.xlsx) ===== */
+// EXCEL
 document.getElementById("excelFile").addEventListener("change", function(e) {
   const file = e.target.files[0];
   if (!file) return;
-
   const reader = new FileReader();
   reader.onload = function(evt) {
     const data = new Uint8Array(evt.target.result);
     const workbook = XLSX.read(data, { type: 'array' });
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    const html = XLSX.utils.sheet_to_html(sheet);
-    editor.innerHTML = html; // Replace content
+    editor.innerHTML = XLSX.utils.sheet_to_html(sheet);
   };
   reader.readAsArrayBuffer(file);
-});
-
-/* ===== SHORTCUTS ===== */
-document.addEventListener("keydown", function(e) {
-  if (e.ctrlKey) {
-    if (e.key === "b") { e.preventDefault(); cmd("bold"); }
-    if (e.key === "i") { e.preventDefault(); cmd("italic"); }
-    if (e.key === "u") { e.preventDefault(); cmd("underline"); }
-    if (e.key === "s") { e.preventDefault(); saveFile(); }
-  }
 });
 </script>
 
