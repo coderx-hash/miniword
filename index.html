@@ -3,23 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Modern Whiteboard Word Editor</title>
+<title>Modern Word Whiteboard PRO</title>
 
 <style>
 
 :root{
   --bg:#f3f4f6;
   --card:#ffffff;
-  --accent:#2563eb;
 }
 
 body{
   margin:0;
-  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+  font-family:system-ui,Segoe UI,Arial;
   background:var(--bg);
 }
 
-/* ===== TOP BAR ===== */
+/* ===== TOOLBAR ===== */
 .toolbar{
   position:sticky;
   top:0;
@@ -38,14 +37,8 @@ button,select,input[type=color]{
   border-radius:8px;
   background:#eef2ff;
   cursor:pointer;
-  font-size:14px;
 }
 
-button:hover{
-  background:#dbeafe;
-}
-
-/* ===== PAGE WRAPPER ===== */
 .wrapper{
   display:flex;
   justify-content:center;
@@ -53,22 +46,20 @@ button:hover{
 }
 
 .page{
-  background:var(--card);
+  background:white;
   width:794px;
   min-height:1123px;
   padding:40px;
   box-shadow:0 10px 25px rgba(0,0,0,.15);
   outline:none;
-  transition:.3s;
+  transition:.2s;
 }
 
-/* landscape mode */
 .landscape{
   width:1123px;
   min-height:794px;
 }
 
-/* table style */
 table{
   width:100%;
   border-collapse:collapse;
@@ -78,7 +69,7 @@ td,th{
   padding:6px;
 }
 
-/* ===== MOBILE RESPONSIVE ===== */
+/* MOBILE */
 @media(max-width:900px){
   .page{
     width:100%;
@@ -88,25 +79,19 @@ td,th{
   }
 }
 
-/* ===== PRINT A4 ===== */
+/* PRINT A4 */
 @media print{
-
-.toolbar{ display:none; }
-body{ background:white; }
-
+.toolbar{display:none;}
 .page{
-  box-shadow:none;
-  margin:0;
   width:210mm;
   min-height:297mm;
   padding:20mm;
+  box-shadow:none;
 }
-
 .landscape{
   width:297mm;
   min-height:210mm;
 }
-
 }
 
 </style>
@@ -131,9 +116,7 @@ body{ background:white; }
 <input type="color" onchange="cmd('hiliteColor',this.value)">
 
 <button onclick="insertTable()">Table</button>
-
 <button onclick="toggleOrientation()">Portrait / Landscape</button>
-
 <button onclick="saveData()">Save</button>
 <button onclick="window.print()">Print</button>
 
@@ -141,8 +124,8 @@ body{ background:white; }
 
 <div class="wrapper">
 <div id="editor" class="page" contenteditable="true">
-<h2>Modern Whiteboard Editor</h2>
-<p>Type, paste images, create tables. Works on mobile & desktop.</p>
+<h2>Modern Editor PRO</h2>
+<p>Keyboard shortcuts like Word are enabled.</p>
 </div>
 </div>
 
@@ -150,9 +133,9 @@ body{ background:white; }
 
 const editor=document.getElementById("editor");
 
-/* ===== BASIC COMMANDS ===== */
-function cmd(command,value=null){
- document.execCommand(command,false,value);
+/* BASIC COMMAND */
+function cmd(c,v=null){
+ document.execCommand(c,false,v);
 }
 
 /* FONT SIZE */
@@ -160,37 +143,38 @@ function fontSize(size){
  document.execCommand("fontSize",false,size);
 }
 
-/* INSERT TABLE */
+/* TABLE */
 function insertTable(){
  let r=prompt("Rows?");
  let c=prompt("Columns?");
- if(!r||!c) return;
+ if(!r||!c)return;
 
  let html="<table>";
  for(let i=0;i<r;i++){
-   html+="<tr>";
-   for(let j=0;j<c;j++){
-     html+="<td>Text</td>";
-   }
-   html+="</tr>";
+  html+="<tr>";
+  for(let j=0;j<c;j++){
+    html+="<td>Text</td>";
+  }
+  html+="</tr>";
  }
  html+="</table>";
 
  document.execCommand("insertHTML",false,html);
 }
 
-/* ===== ORIENTATION SWITCH ===== */
+/* ORIENTATION */
 function toggleOrientation(){
  editor.classList.toggle("landscape");
  saveData();
 }
 
-/* ===== SAVE / LOAD ===== */
+/* SAVE */
 function saveData(){
  localStorage.setItem("modernEditor",editor.innerHTML);
  localStorage.setItem("orientation",editor.classList.contains("landscape"));
 }
 
+/* LOAD */
 function loadData(){
  const data=localStorage.getItem("modernEditor");
  const orient=localStorage.getItem("orientation");
@@ -201,29 +185,82 @@ function loadData(){
 
 window.onload=loadData;
 
-/* AUTO SAVE WHILE TYPING */
-editor.addEventListener("input",()=>{
- saveData();
-});
+/* AUTO SAVE */
+editor.addEventListener("input",saveData);
 
-/* ===== PASTE IMAGE SUPPORT ===== */
+/* ===== PASTE IMAGE ===== */
 editor.addEventListener("paste",function(e){
  const items=(e.clipboardData||window.clipboardData).items;
-
  for(let i=0;i<items.length;i++){
   if(items[i].type.indexOf("image")!==-1){
     e.preventDefault();
     const blob=items[i].getAsFile();
     const reader=new FileReader();
-
     reader.onload=function(event){
       document.execCommand("insertImage",false,event.target.result);
     };
-
     reader.readAsDataURL(blob);
   }
  }
 });
+
+/* ===== KEYBOARD SHORTCUTS LIKE WORD ===== */
+
+document.addEventListener("keydown",function(e){
+
+/* CTRL SHORTCUTS */
+if(e.ctrlKey){
+
+ if(e.key==="b"){ e.preventDefault(); cmd("bold"); }
+ if(e.key==="i"){ e.preventDefault(); cmd("italic"); }
+ if(e.key==="u"){ e.preventDefault(); cmd("underline"); }
+
+ if(e.key==="s"){ e.preventDefault(); saveData(); alert("Saved!"); }
+ if(e.key==="p"){ e.preventDefault(); window.print(); }
+
+ if(e.key==="l"){ e.preventDefault(); cmd("justifyLeft"); }
+ if(e.key==="e"){ e.preventDefault(); cmd("justifyCenter"); }
+ if(e.key==="r"){ e.preventDefault(); cmd("justifyRight"); }
+ if(e.key==="j"){ e.preventDefault(); cmd("justifyFull"); }
+
+}
+
+/* CTRL + SHIFT FONT SIZE */
+if(e.ctrlKey && e.shiftKey){
+ if(e.key===">"){ e.preventDefault(); cmd("increaseFontSize"); }
+ if(e.key==="<"){ e.preventDefault(); cmd("decreaseFontSize"); }
+}
+
+/* ===== SHIFT + F3 TOGGLE CASE ===== */
+if(e.shiftKey && e.key==="F3"){
+ e.preventDefault();
+ toggleCase();
+}
+
+});
+
+/* SHIFT+F3 FUNCTION */
+function toggleCase(){
+
+ let sel=window.getSelection();
+ if(!sel.rangeCount) return;
+
+ let range=sel.getRangeAt(0);
+ let text=range.toString();
+ if(!text) return;
+
+ let newText;
+
+ if(text===text.toUpperCase()){
+   newText=text.toLowerCase();
+}else if(text===text.toLowerCase()){
+   newText=text.replace(/\b\w/g,l=>l.toUpperCase());
+}else{
+   newText=text.toUpperCase();
+}
+
+document.execCommand("insertText",false,newText);
+}
 
 </script>
 
