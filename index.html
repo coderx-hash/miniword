@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Modern Whiteboard Word Editor</title>
+
+<style>
+
+:root{
+  --bg:#f3f4f6;
+  --card:#ffffff;
+  --accent:#2563eb;
+}
+
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+  background:var(--bg);
+}
+
+/* ===== TOP BAR ===== */
+.toolbar{
+  position:sticky;
+  top:0;
+  background:#fff;
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  padding:10px;
+  box-shadow:0 2px 10px rgba(0,0,0,.08);
+  z-index:999;
+}
+
+button,select,input[type=color]{
+  border:0;
+  padding:7px 10px;
+  border-radius:8px;
+  background:#eef2ff;
+  cursor:pointer;
+  font-size:14px;
+}
+
+button:hover{
+  background:#dbeafe;
+}
+
+/* ===== PAGE WRAPPER ===== */
+.wrapper{
+  display:flex;
+  justify-content:center;
+  padding:15px;
+}
+
+.page{
+  background:var(--card);
+  width:794px;
+  min-height:1123px;
+  padding:40px;
+  box-shadow:0 10px 25px rgba(0,0,0,.15);
+  outline:none;
+  transition:.3s;
+}
+
+/* landscape mode */
+.landscape{
+  width:1123px;
+  min-height:794px;
+}
+
+/* table style */
+table{
+  width:100%;
+  border-collapse:collapse;
+}
+td,th{
+  border:1px solid #000;
+  padding:6px;
+}
+
+/* ===== MOBILE RESPONSIVE ===== */
+@media(max-width:900px){
+  .page{
+    width:100%;
+    min-height:90vh;
+    padding:20px;
+    box-shadow:none;
+  }
+}
+
+/* ===== PRINT A4 ===== */
+@media print{
+
+.toolbar{ display:none; }
+body{ background:white; }
+
+.page{
+  box-shadow:none;
+  margin:0;
+  width:210mm;
+  min-height:297mm;
+  padding:20mm;
+}
+
+.landscape{
+  width:297mm;
+  min-height:210mm;
+}
+
+}
+
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+
+<button onclick="cmd('bold')">B</button>
+<button onclick="cmd('italic')">I</button>
+<button onclick="cmd('underline')">U</button>
+
+<select onchange="fontSize(this.value)">
+<option value="">Font Size</option>
+<option value="1">10</option>
+<option value="3">14</option>
+<option value="5">18</option>
+<option value="7">24</option>
+</select>
+
+<input type="color" onchange="cmd('foreColor',this.value)">
+<input type="color" onchange="cmd('hiliteColor',this.value)">
+
+<button onclick="insertTable()">Table</button>
+
+<button onclick="toggleOrientation()">Portrait / Landscape</button>
+
+<button onclick="saveData()">Save</button>
+<button onclick="window.print()">Print</button>
+
+</div>
+
+<div class="wrapper">
+<div id="editor" class="page" contenteditable="true">
+<h2>Modern Whiteboard Editor</h2>
+<p>Type, paste images, create tables. Works on mobile & desktop.</p>
+</div>
+</div>
+
+<script>
+
+const editor=document.getElementById("editor");
+
+/* ===== BASIC COMMANDS ===== */
+function cmd(command,value=null){
+ document.execCommand(command,false,value);
+}
+
+/* FONT SIZE */
+function fontSize(size){
+ document.execCommand("fontSize",false,size);
+}
+
+/* INSERT TABLE */
+function insertTable(){
+ let r=prompt("Rows?");
+ let c=prompt("Columns?");
+ if(!r||!c) return;
+
+ let html="<table>";
+ for(let i=0;i<r;i++){
+   html+="<tr>";
+   for(let j=0;j<c;j++){
+     html+="<td>Text</td>";
+   }
+   html+="</tr>";
+ }
+ html+="</table>";
+
+ document.execCommand("insertHTML",false,html);
+}
+
+/* ===== ORIENTATION SWITCH ===== */
+function toggleOrientation(){
+ editor.classList.toggle("landscape");
+ saveData();
+}
+
+/* ===== SAVE / LOAD ===== */
+function saveData(){
+ localStorage.setItem("modernEditor",editor.innerHTML);
+ localStorage.setItem("orientation",editor.classList.contains("landscape"));
+}
+
+function loadData(){
+ const data=localStorage.getItem("modernEditor");
+ const orient=localStorage.getItem("orientation");
+
+ if(data) editor.innerHTML=data;
+ if(orient==="true") editor.classList.add("landscape");
+}
+
+window.onload=loadData;
+
+/* AUTO SAVE WHILE TYPING */
+editor.addEventListener("input",()=>{
+ saveData();
+});
+
+/* ===== PASTE IMAGE SUPPORT ===== */
+editor.addEventListener("paste",function(e){
+ const items=(e.clipboardData||window.clipboardData).items;
+
+ for(let i=0;i<items.length;i++){
+  if(items[i].type.indexOf("image")!==-1){
+    e.preventDefault();
+    const blob=items[i].getAsFile();
+    const reader=new FileReader();
+
+    reader.onload=function(event){
+      document.execCommand("insertImage",false,event.target.result);
+    };
+
+    reader.readAsDataURL(blob);
+  }
+ }
+});
+
+</script>
+
+</body>
+</html>
